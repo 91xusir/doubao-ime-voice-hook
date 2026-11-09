@@ -1,0 +1,27 @@
+# 原始与补丁后的二进制（体积大，且含厂商版权内容，不入库）
+ImeService-org.exe
+ImeService-patch-v2.exe
+ImeService*.exe
+
+# IDA 数据库
+*.i64
+*.id0
+*.id1
+*.id2
+*.nam
+*.til
+
+# IDA 反编译产物
+fn5399.c
+slot_simplemsg.c
+rpc_client.c
+
+# 证书
+*.cer
+*.pfx
+
+# 其他
+帖子.md
+report.md
+__pycache__/
+*.pyc
