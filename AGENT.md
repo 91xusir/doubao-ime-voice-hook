@@ -5,6 +5,46 @@
 
 ---
 
+## 0. 🔴 版本限定（动手前第一件事）
+
+**本仓库所有已记录的偏移、字节、跳转目标，只对 `ImeService.exe` 版本 `1.0.0.23` 有效。**
+
+`apply_patch.py` 内置版本检查，不匹配会**直接报错退出**（不会写坏文件）：
+
+```
+[!] 版本不匹配 —— 本脚本只适用于 ImeService.exe 1.0.0.23
+```
+
+### 版本指纹
+
+| 项目 | 值 |
+|---|---|
+| 版本号 | `1.0.0.23` |
+| **PE TimeDateStamp** | **`0x6AE856B7`** ← 最可靠的判据 |
+| 厂商原始文件大小 | `32,857,488` 字节 |
+| 补丁后文件大小 | `32,847,144` 字节 |
+
+只核对目录名不够——目录名可能被改，其它版本的目录名也可能长得一样。
+**必须核对 PE TimeDateStamp**：
+
+```powershell
+python -c "import struct;d=open(r'C:\Program Files\DoubaoIME\versions\v1.0.0.23\ImeService.exe','rb').read();pe=struct.unpack_from('<I',d,0x3c)[0];print('0x%08X'%struct.unpack_from('<I',d,pe+8)[0])"
+```
+
+### 不匹配时怎么办
+
+1. **不要**强行改 `TARGET_PE_TIMESTAMP` 绕过检查——那只会让脚本改错位置。
+2. 把新版本的 `ImeService.exe` 存为 `ImeService-org.exe`。
+3. 打开 IDA，按 §3 定位 `VoiceKeyHookProc`，按 §5 用锚点重新定位四个补丁点。
+4. 更新 `apply_patch.py` 中的 `TARGET_PE_TIMESTAMP`、`TARGET_ORIG_SIZE` 和 `PATCHES`。
+5. 强烈建议先把新版本的分析结论（地址、字节、锚点命中次数）记录下来再动手，
+   否则新旧版本混在一起极易搞错。
+
+> 若新版本连**锚点都不唯一**了（`45 8b 75 00 41 c1 ee 04 41 80 e6 01` 命中 >1 次），
+> 说明编译器/代码结构发生了较大变化，需要完整重走 §3–§5，不能依赖本书的快路径。
+
+---
+
 ## 1. 任务是什么
 
 豆包输入法（DoubaoIME）的语音输入只响应物理按键。原因是 `ImeService.exe` 的底层键盘钩子

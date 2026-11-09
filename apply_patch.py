@@ -49,6 +49,41 @@ TEXT_RAW = 0x400    # .text PointerToRawData
 
 PATCH1_TARGET = 0x1407DF192  # loc_1407DF192: CallNextHookEx (跳过处理的出口，nCode = r14d)
 
+# ---------------------------------------------------------------------------
+# 版本指纹：本脚本的偏移只对下面这个版本有效
+# ---------------------------------------------------------------------------
+TARGET_VERSION = "1.0.0.23"
+TARGET_PE_TIMESTAMP = 0x6AE856B7   # PE 头 TimeDateStamp
+TARGET_ORIG_SIZE = 32857488        # 厂商原始文件大小
+
+
+def read_pe_timestamp(data: bytes) -> int:
+    pe = struct.unpack_from("<I", data, 0x3C)[0]
+    return struct.unpack_from("<I", data, pe + 8)[0]
+
+
+def check_version(data: bytes) -> None:
+    """版本不匹配就中止，避免对着错误版本套用偏移。"""
+    ts = read_pe_timestamp(data)
+    if ts != TARGET_PE_TIMESTAMP or len(data) != TARGET_ORIG_SIZE:
+        print("-" * 64)
+        print("[!] 版本不匹配 —— 本脚本只适用于 ImeService.exe "
+              f"{TARGET_VERSION}")
+        print(f"    期望: PE TimeDateStamp=0x{TARGET_PE_TIMESTAMP:08X}  "
+              f"大小={TARGET_ORIG_SIZE}")
+        print(f"    实际: PE TimeDateStamp=0x{ts:08X}  "
+              f"大小={len(data)}")
+        print()
+        print("    处理办法:")
+        print("    1. 确认你没有在错误的文件上运行")
+        print("    2. 若确实是新版本，按 AGENT.md §5 用锚点重新定位四个补丁点，")
+        print("       更新本文件的 TARGET_PE_TIMESTAMP / PATCHES 后再运行")
+        print("-" * 64)
+        sys.exit(1)
+
+    print(f"[+] 版本校验通过: {TARGET_VERSION} "
+          f"(PE TimeDateStamp=0x{ts:08X}, {len(data)} 字节)")
+
 
 def ea_of(file_off: int) -> int:
     """把 .text 内的文件偏移转换成 IDA 中看到的 VA。"""
@@ -104,10 +139,12 @@ def main() -> int:
         sys.exit(f"[!] 找不到原版文件: {SRC}")
 
     src = SRC.read_bytes()
-    out = build(src)
-    assert len(out) == len(src), "文件大小不应改变"
 
     print(f"[+] 原始文件: {SRC}  ({len(src)} 字节)")
+    check_version(src)          # 版本不匹配直接退出
+
+    out = build(src)
+    assert len(out) == len(src), "文件大小不应改变"
 
     if args.verify:
         print("[+] 所有偏移与原始字节校验通过。")
@@ -123,7 +160,7 @@ def main() -> int:
         new = out[off:off + n].hex()
         print(f"    0x{off:07X}  {orig_hex}  ->  {new}   {desc}")
     print()
-    print("[i] 下一步：重新计算 PE 校验和并签名（见 证书安装.ps1 / Build-SignedIme.ps1）")
+    print("[i] 下一步：签名（见 sign-imeservice.ps1）")
     return 0
 
 
