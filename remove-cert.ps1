@@ -1,3 +1,5 @@
+﻿# remove-cert.ps1 — 卸载自签名证书（仅本机）
+
 $Subject = "CN=Local Doubao IME Code Signing"
 
 foreach ($Store in @("My", "Root")) {

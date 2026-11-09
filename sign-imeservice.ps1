@@ -1,5 +1,9 @@
 ﻿
-# 一键签名脚本：给 ImeService.exe 重新签名并建立本机信任链
+# sign-imeservice.ps1 — 给 ImeService.exe 重新签名并建立本机信任链
+#
+# 用法:
+#   powershell -ExecutionPolicy Bypass -File .\sign-imeservice.ps1
+#   powershell -ExecutionPolicy Bypass -File .\sign-imeservice.ps1 -Exe "C:\path\ImeService.exe"
 
 param(
     # 目标 exe；留空则自动选取安装目录下版本号最高的 ImeService.exe

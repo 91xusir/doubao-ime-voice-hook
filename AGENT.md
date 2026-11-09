@@ -130,7 +130,7 @@ VoiceKeyHookProc（IDA 显示为 sub_1407DDD90）
 - [ ] 锚点仍唯一？若命中 >1，说明编译器变了，需要手工回 IDA 确认
 - [ ] 寄存器是否仍是 `r14`？（`xor r14d,r14d` 依赖它）
 - [ ] `TEXT_RAW` 是否仍是 `0x400`？（节表布局变了要改）
-- [ ] 安装目录版本号变了 → `证书安装.ps1` 已能自动探测最新版本目录；若目录结构不同，用 `-Exe <路径>` 手动指定
+- [ ] 安装目录版本号变了 → `sign-imeservice.ps1` 已能自动探测最新版本目录；若目录结构不同，用 `-Exe <路径>` 手动指定
 
 ---
 
@@ -149,9 +149,9 @@ copy .\ImeService-patch-v2.exe "C:\Program Files\DoubaoIME\versions\<new>\ImeSer
 
 # 4) 签名（管理员，自动建证书+导入信任链+备份）
 #    默认自动选安装目录下版本号最高的 ImeService.exe
-powershell -ExecutionPolicy Bypass -File .\证书安装.ps1
+powershell -ExecutionPolicy Bypass -File .\sign-imeservice.ps1
 #    或手动指定：
-#    powershell -ExecutionPolicy Bypass -File .\证书安装.ps1 -Exe "C:\...\ImeService.exe"
+#    powershell -ExecutionPolicy Bypass -File .\sign-imeservice.ps1 -Exe "C:\...\ImeService.exe"
 ```
 
 ### 6.1 PE CheckSum 计算要点
@@ -165,7 +165,7 @@ powershell -ExecutionPolicy Bypass -File .\证书安装.ps1
 
 ### 6.2 签名要点
 
-- `证书安装.ps1` 存盘必须是 **UTF-8 with BOM**，否则 PowerShell 5.1 按 ANSI 解析中文串会语法报错。
+- `sign-imeservice.ps1` 存盘必须是 **UTF-8 with BOM**，否则 PowerShell 5.1 按 ANSI 解析中文串会语法报错。
 - `New-SelfSignedCertificate -Type CodeSigningCert` 在部分系统上**写不出 EKU**，`signtool` 会报
   "No certificates were found"。改用：
   ```powershell
@@ -242,7 +242,8 @@ int RpcPipe_SimpleMessage(const char* pipeName, uint32 cmd, uint32 a3, uint32 a4
 | `apply_patch.py` | 补丁生成器，含逐点字节校验。`--verify` 只校验不落盘 |
 | `ImeService-org.exe` | 原始文件（厂商签名 `Valid`），回滚用 |
 | `ImeService-patch-v2.exe` | 补丁输出（未签名） |
-| `证书安装.ps1` | 签名 + 验证 + 安装证书信任链 |
+| `sign-imeservice.ps1` | 签名 + 验证 + 安装证书信任链 |
+| `remove-cert.ps1` | 卸载自签名证书 |
 | `report.md` | 完整逆向报告（给人看） |
 | `fn5399.c` | `VoiceKeyHookProc` 的 Hex-Rays 反编译 |
 | `slot_simplemsg.c` | `slot_SimpleMessage` 反编译（RPC 研究遗留） |

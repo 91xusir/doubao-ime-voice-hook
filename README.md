@@ -22,7 +22,7 @@
 ## 背景
 
 输入法在底层键盘钩子里检查 `LLKHF_INJECTED` 标记，把软件模拟的按键全部过滤掉了。
-`apply_patch.py` 负责把 `ImeService.exe` 里 4 处注入判定改掉，`证书安装.ps1` 负责重新签名。
+`apply_patch.py` 负责把 `ImeService.exe` 里 4 处注入判定改掉，`sign-imeservice.ps1` 负责重新签名。
 
 ## 文件
 
@@ -30,8 +30,8 @@
 |---|---|
 | `AGENT.md` | **给 agent 看的完整说明书**（含重定位算法、踩坑记录、已否决方案） |
 | `apply_patch.py` | 补丁生成器，逐点字节校验，不匹配就中止 |
-| `证书安装.ps1` | 签名 + 验证 + 导入证书信任链 |
-| `证书清理.ps1` | 卸载自签名证书 |
+| `sign-imeservice.ps1` | 签名 + 验证 + 导入证书信任链 |
+| `remove-cert.ps1` | 卸载自签名证书 |
 
 ## 你需要自己准备
 
